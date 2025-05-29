@@ -30,13 +30,18 @@
     border-1
      border-[rgba(101,101,101,0.6)]
     rounded-lg
-    p-2
+    p-3
     mt-1
     focus:outline-3
     focus:outline-double
     focus:outline-neutral-500
     text-[.9rem]
 ;
+  }
+
+  .inputFormError {
+    @apply
+    border-red-500
   }
 
   .buttonAvatar{
@@ -64,9 +69,30 @@
 .bg-white-opacity-10 {
   background-color: rgba(255, 255, 255, 0.1);
 }
+.bg-white-opacity-10:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transition-property: background-color;
+  transition-duration: .25s;
+}
 .buttonAvatar{
   background-color: rgba(98, 98, 98, 0.2);
 }
 .buttonAvatar:hover {
   background-color: rgba(152, 152, 152, 0.2);
+}
+/* App.css */
+.responsive-break {
+  display: inline;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--color-gradient-start), var(--color-gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (min-width: 641px) {
+  .responsive-break {
+    display: block;
+  }
 }

@@ -15,7 +15,7 @@ export const processFile = (file) => {
             };
             reader.readAsDataURL(file);
         } else {
-            alert("Solo immagini JPG o PNG, max 500kb");
+            reject("File too large. Please upload a photo under 500kb")
         }
     })
 };

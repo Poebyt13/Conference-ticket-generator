@@ -10,13 +10,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 const schema = z.object({
     fullname: z.string().min(1, "Full name is required").max(20, "Full name must be less than 50 characters"),
     email: z.string().email("Invalid email address").max(50, "Email must be less than 50 characters"),
-    username: z.string().min(1, "GitHub username is required").max(20, "GitHub username must be less than 20 characters"),
+    username: z.string()
+        .min(1, "GitHub username is required")
+        .max(20, "GitHub username must be less than 20 characters")
+        .regex(/^@/, "GitHub username must start with '@'"),
 })
 
-function CustomForm() {
+function CustomForm({ setFormData, setSubmitted }) {
     const inputRef = useRef(null);
     const [file, setFile] = useState(null);
-
+    const [fileError, setFileError] = useState("");
+    
     const {
         register,
         handleSubmit,
@@ -32,7 +36,7 @@ function CustomForm() {
 
     const handleDrop = async (event) => {
         event.preventDefault();
-
+        setFileError("");
         const fileDropped = event.dataTransfer.files;
         if (fileDropped.length > 0) {
             const file = fileDropped[0];
@@ -40,7 +44,7 @@ function CustomForm() {
                 const res = await processFile(file);
                 setFile(res);
             } catch (error) {
-                alert(error);
+                setFileError(error)
             }
         }
     };
@@ -50,21 +54,32 @@ function CustomForm() {
     };
 
     const handleChange = async (event) => {
+        setFileError("");
         const file = event.target.files[0];
         try {
             const res = await processFile(file);
             setFile(res);
         } catch (error) {
-            alert(error);
+            setFileError(error);
         }
     };
 
     const onSubmit = (data) => {
-        console.log(data);
+        if (!file) {
+            setFileError("Please upload an image");
+            return;
+        }
+        setFormData({
+            fullname: data.fullname,
+            email: data.email,
+            username: data.username,
+            imgUrl: file,
+        });
+        setSubmitted(true);
     }
 
     return (
-        <form className="flex flex-col font-family-inconsolata gap-4"
+        <form className="flex flex-col font-family-inconsolata gap-4 z-50"
             onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-2">
                 <label className="text-[.9rem]" htmlFor="avatar">Upload Avatar</label>
@@ -92,7 +107,12 @@ function CustomForm() {
                             <button
                                 type="button"
                                 className="buttonAvatar"
-                                onClick={() => setFile(null)}
+                                onClick={() => {
+                                    setFile(null)
+                                    if (inputRef.current) {
+                                        inputRef.current.value = null;
+                                    }
+                                }}
                             >
                                 Remove Image
                             </button>
@@ -117,12 +137,24 @@ function CustomForm() {
                     className="hidden"
                     onChange={handleChange}
                 />
-                <div className="flex gap-2 text-neutral-400">
-                    <img src={iconInfo} alt="infoImage" className="w-3.5" />
-                    <p className="text-xs">
-                        Upload your photo (JPG or PNG, max size: 500kb)
-                    </p>
-                </div>
+                {
+                    fileError ? (
+                        <div className="flex gap-2 text-neutral-400">
+                            <img src={iconInfoError} alt="infoImage" className="w-3.5 mt-0.5" />
+                            <p className="text-red-500 text-xs mt-1">
+                                {fileError}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="flex gap-2 text-neutral-400">
+                            <img src={iconInfo} alt="infoImage" className="w-3.5" />
+                            <p className="text-[.7rem]">
+                                Upload your photo (JPG or PNG, max size: 500kb)
+                            </p>
+                        </div>
+                    )
+                }
+
             </div>
             <div className="inputFormContainer">
                 <label className="text-[.9rem]" htmlFor="fullName">Full Name</label>
@@ -130,7 +162,7 @@ function CustomForm() {
                     type="text"
                     id="fullName"
                     name="fullName"
-                    className="inputForm bg-white-opacity-10"
+                    className={`inputForm bg-white-opacity-10 ${errors.fullname ? 'inputFormError' : ''}`}
                     {...register('fullname')}
                 />
                 {errors.fullname &&
@@ -150,7 +182,7 @@ function CustomForm() {
                     id="email"
                     name="email"
                     placeholder="example@gmail.com"
-                    className="inputForm bg-white-opacity-10"
+                    className={`inputForm bg-white-opacity-10 ${errors.email ? 'inputFormError' : ''}`}
                     {...register('email')}
                 />
                 {errors.email &&
@@ -169,7 +201,7 @@ function CustomForm() {
                     id="username"
                     name="username"
                     placeholder="@yourusername"
-                    className="inputForm bg-white-opacity-10"
+                    className={`inputForm bg-white-opacity-10 ${errors.username ? 'inputFormError' : ''}`}
                     {...register('username')}
                 />
                 {errors.username &&
